@@ -35,7 +35,7 @@ def login():
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        if not next_page:
+        if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
@@ -60,6 +60,7 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 @app.route('/user/<username>')
+@login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     posts = [
@@ -75,6 +76,7 @@ def before_request():
         db.session.commit()
 
 @app.route('/explore')
+@login_required
 def explore():
     posts = Post.query.order_by(Post.timestamp.desc()).all()
     return render_template('index.html', title='Explore', posts=posts)
